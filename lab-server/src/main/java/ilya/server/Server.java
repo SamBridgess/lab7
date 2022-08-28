@@ -9,8 +9,7 @@ import ilya.common.Requests.ServerResponse;
 import ilya.common.util.AddressValidator;
 import ilya.server.Commands.*;
 import ilya.server.SQL.SQLCollectionManager;
-import ilya.server.SQL.SQLManager;
-import ilya.server.ServerUtil.CollectionManager;
+import ilya.server.SQL.QueryManager;
 
 import java.io.*;
 import java.net.BindException;
@@ -39,7 +38,7 @@ public final class Server {
             args[0] = "5555";
 
 
-            SQLManager sqlManager = new SQLManager(DB_USERNAME, DB_PASSWORD, DB_URL);
+            QueryManager sqlManager = new QueryManager(DB_USERNAME, DB_PASSWORD, DB_URL);
             sqlManager.CreateTable();
 
             if (!AddressValidator.checkPort(args)) {
@@ -80,6 +79,7 @@ public final class Server {
                             continue;
                         }
 
+                        String username = clientMessage.getUsername();
                         String command = clientMessage.getCommand();
                         String[] arguments = clientMessage.getArgs();
                         Route route = clientMessage.getRoute();
@@ -87,7 +87,7 @@ public final class Server {
 
                         //sqlManager.add(route);
 
-                        ServerResponse serverResponse = commands.get(command).execute(arguments, route, isFile);
+                        ServerResponse serverResponse = commands.get(command).execute(username, arguments, route, isFile);
 
                         sendResponse(key, serverResponse);
                     }
@@ -141,20 +141,19 @@ public final class Server {
     }
     private static HashMap<String, Command> createCommandsMap(SQLCollectionManager manager) {
         HashMap<String, Command> commands = new HashMap<>();
-        //commands.put("help", new HelpCommand());
-        //commands.put("info", new InfoCommand(manager));
-        //commands.put("show", new ShowCommand(manager));
+        commands.put("help", new HelpCommand());
+        commands.put("info", new InfoCommand(manager));
+        commands.put("show", new ShowCommand(manager));
         commands.put("add", new AddCommand(manager));
         //commands.put("update", new UpdateCommand(manager));
         //commands.put("remove_by_id", new RemoveByIdCommand(manager));
         commands.put("clear", new ClearCommand(manager));
-        //commands.put("exit", new ExitCommand());
         //commands.put("remove_first", new RemoveFirstCommand(manager));
         //commands.put("remove_lower", new RemoveLowerCommand(manager));
         //commands.put("sort", new SortCommand(manager));
-        //commands.put("filter_less_than_distance", new FilterLessThanDistanceCommand(manager));
-        //commands.put("print_ascending", new PrintAscendingCommand(manager));
-        //commands.put("print_field_descending_distance", new PrintFieldDescendingDistanceCommand(manager));
+        commands.put("filter_less_than_distance", new FilterLessThanDistanceCommand(manager));
+        commands.put("print_ascending", new PrintAscendingCommand(manager));
+        commands.put("print_field_descending_distance", new PrintFieldDescendingDistanceCommand(manager));
         return commands;
     }
 }

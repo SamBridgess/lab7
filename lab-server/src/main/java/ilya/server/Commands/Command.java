@@ -15,5 +15,5 @@ import java.sql.SQLException;
 public abstract class Command {
     public Command() {
     }
-    public abstract ServerResponse execute(String[] args, Route route, boolean isFile) throws IOException, WrongFileFormatException, CtrlDException, SQLException;
+    public abstract ServerResponse execute(String username, String[] args, Route route, boolean isFile) throws IOException, WrongFileFormatException, CtrlDException, SQLException;
 }

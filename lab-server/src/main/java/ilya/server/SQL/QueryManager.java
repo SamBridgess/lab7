@@ -3,7 +3,7 @@ import ilya.common.Classes.Route;
 
 import java.sql.*;
 
-public class SQLManager {
+public class QueryManager {
     private static final String SQL_CREATE = "CREATE TABLE IF NOT EXISTS ROUTES "
             + "("
             + " ID SERIAL PRIMARY KEY,"
@@ -23,7 +23,7 @@ public class SQLManager {
             + " DISTANCE FLOAT NOT NULL"
             + ")";
     private Connection connection;
-    public SQLManager(String username, String password, String url) throws SQLException, ClassNotFoundException {
+    public QueryManager(String username, String password, String url) throws SQLException, ClassNotFoundException {
         this.connection = DriverManager.getConnection(url, username, password);
         Class.forName("org.postgresql.Driver");
     }
@@ -32,20 +32,13 @@ public class SQLManager {
         statement.execute(SQL_CREATE);
     }
 
-    public void clearOwned() throws SQLException {
-        String username = "SomeOwner";
-
+    public void clearOwned(String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM ROUTES WHERE OWNER=?");
         preparedStatement.setString(1, username);
         preparedStatement.execute();
     }
 
-    public String getAllElements() {
-
-    }
-    public Long add(Route route) throws SQLException {
-        String username = "SomeOwner";
-
+    public Long add(Route route, String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO ROUTES (ID, OWNER, ROUTE_NAME, COORDINATE_X, COORDINATE_Y, CREARION_DATE, "
                         + "FROM_X, FROM_Y, FROM_Z, FROM_NAME, TO_X, TO_Y, TO_Z, TO_NAME, DISTANCE)"

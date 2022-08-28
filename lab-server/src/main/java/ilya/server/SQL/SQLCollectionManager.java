@@ -10,16 +10,16 @@ import java.util.stream.Collectors;
 public class SQLCollectionManager {
     private ArrayList<Route> collection = new ArrayList<>();
     private final Date collectionCreationDate = new Date();
-    private SQLManager sqlManager;
+    private QueryManager queryManager;
 
     /**
      * creates new CollectionManager
      *
      * @param collection        collection to work with
      */
-    public SQLCollectionManager(ArrayList<Route> collection, SQLManager sqlManager) {
+    public SQLCollectionManager(ArrayList<Route> collection, QueryManager queryManager) {
         this.collection = collection;
-        this.sqlManager = sqlManager;
+        this.queryManager = queryManager;
     }
     public SQLCollectionManager() {
     }
@@ -28,8 +28,8 @@ public class SQLCollectionManager {
      *
      * @param route  element to add
      */
-    public void addNewElement(Route route) throws SQLException {
-        sqlManager.add(route);
+    public void addNewElement(Route route, String username) throws SQLException {
+        queryManager.add(route, username);
         collection.add(route);
     }
 
@@ -37,9 +37,16 @@ public class SQLCollectionManager {
     /**
      * clears collection
      */
-    public void clearCollection() throws SQLException {
-        sqlManager.clearOwned();
+    public void clearCollection(String username) throws SQLException {
+        queryManager.clearOwned(username);
         collection.clear();
+    }
+
+    /**
+     * @return      returns collection
+     */
+    public ArrayList<Route> getCollection() throws SQLException {
+        return collection;
     }
 
     /**
@@ -73,6 +80,7 @@ public class SQLCollectionManager {
     public boolean removeRouteByID(Long id) {
         return collection.removeIf(x -> x.getId() == id);
     }
+
     /**
      * removes all objects from collection that are lower than the passed one
      * @param route     passed object
@@ -80,6 +88,7 @@ public class SQLCollectionManager {
     public void removeAllLower(Route route) {
         collection.removeIf(value -> new RouteComparator().isLower(value, route));
     }
+
     /**
      * updates element in collection
      *
@@ -107,13 +116,6 @@ public class SQLCollectionManager {
      */
     public List<Route> getLessThanDistance(float distance) {
         return collection.stream().filter(x -> x.getDistance() < distance).collect(Collectors.toList());
-    }
-
-    /**
-     * @return      returns collection
-     */
-    public ArrayList<Route> getCollection() {
-        return collection;
     }
 
     /**

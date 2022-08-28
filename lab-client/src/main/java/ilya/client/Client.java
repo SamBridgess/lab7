@@ -63,7 +63,7 @@ public final class Client {
                                 route = new RouteCreator(io).createRoute();
                             }
 
-                            ClientMessage clientMessage = new ClientMessage(command, arguments, route, io.getIsFile());
+                            ClientMessage clientMessage = new ClientMessage(username, command, arguments, route, io.getIsFile());
                             ServerResponse serverResponse = sendRequest(clientMessage);
                             io.println(serverResponse.getResponseMessage());
 

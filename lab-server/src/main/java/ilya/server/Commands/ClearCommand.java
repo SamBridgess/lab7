@@ -23,8 +23,8 @@ public class ClearCommand extends Command {
      * @param route     potential new element
      */
     @Override
-    public ServerResponse execute(String[] args, Route route, boolean isFile) throws SQLException {
-        manager.clearCollection();
+    public ServerResponse execute(String username, String[] args, Route route, boolean isFile) throws SQLException {
+        manager.clearCollection(username);
 
         return new ServerResponse("Collection cleared successfully",  false);
     }

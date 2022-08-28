@@ -2,8 +2,10 @@ package ilya.server.Commands;
 
 import ilya.common.Classes.Route;
 import ilya.common.Requests.ServerResponse;
+import ilya.server.SQL.SQLCollectionManager;
 import ilya.server.ServerUtil.CollectionManager;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -11,8 +13,8 @@ import java.util.Collections;
  * show command
  */
 public class ShowCommand extends Command {
-    private final CollectionManager manager;
-    public ShowCommand(CollectionManager manager) {
+    private final SQLCollectionManager manager;
+    public ShowCommand(SQLCollectionManager manager) {
         this.manager = manager;
     }
 
@@ -23,7 +25,7 @@ public class ShowCommand extends Command {
      * @param route     potential new element
      */
     @Override
-    public ServerResponse execute(String[] args, Route route, boolean isFile) {
+    public ServerResponse execute(String username, String[] args, Route route, boolean isFile) throws SQLException {
         ArrayList<Route> listCopy = new ArrayList<>(manager.getCollection());
         Collections.sort(listCopy);
 

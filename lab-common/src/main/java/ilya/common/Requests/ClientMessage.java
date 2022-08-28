@@ -9,12 +9,17 @@ public class ClientMessage implements Serializable {
     private String[] args;
     private Route route;
     private boolean isFile;
+    private String username;
 
-    public ClientMessage(String command, String[] args, Route route, boolean isFile) {
+    public ClientMessage(String username, String command, String[] args, Route route, boolean isFile) {
+        this.username = username;
         this.command = command;
         this.args = args;
         this.route = route;
         this.isFile = isFile;
+    }
+    public String getUsername() {
+        return username;
     }
     public String getCommand() {
         return command;
