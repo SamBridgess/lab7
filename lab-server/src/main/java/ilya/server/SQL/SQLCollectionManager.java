@@ -67,7 +67,8 @@ public class SQLCollectionManager {
     /**
      * sorts collection
      */
-    public void sortCollection() {
+    public void sortCollection() throws SQLException {
+        queryManager.sort();
         Collections.sort(collection);
     }
 
@@ -94,12 +95,13 @@ public class SQLCollectionManager {
      *
      * @param route  element to update
      */
-    public boolean update(Route route) {
-        if (!collection.removeIf(x -> Objects.equals(x.getId(), route.getId()))) {
-            return false;
+    public boolean update(long id, String username, Route route) throws SQLException {
+        if(queryManager.update(id, username, route)) {
+            collection.removeIf(x -> Objects.equals(x.getId(), route.getId()));
+            collection.add(route);
+            return true;
         }
-        collection.add(route);
-        return true;
+        return false;
     }
 
     /**

@@ -109,7 +109,22 @@ public class Route implements Comparable<Route>, Serializable {
      */
     @Override
     public int compareTo(Route r) {
-        return Float.compare(this.distance, r.getDistance()) == 0 ? (this.name.compareTo(r.getName()) == 0 ? (Long.compare(this.id, r.getId())) : this.name.compareTo(r.getName())) : Float.compare(this.distance, r.getDistance());
+        if(Float.compare(this.distance, r.getDistance()) == 0) { //todo might be wrong
+            if(this.name.compareTo(r.getName()) == 0) {
+                return Long.compare(this.id, r.getId());
+            } else {
+                return this.name.compareTo(r.getName());
+            }
+        } else {
+            return Float.compare(this.distance, r.getDistance());
+        }
+        /*
+        return Float.compare(this.distance, r.getDistance()) == 0 ?
+                (this.name.compareTo(r.getName()) == 0 ? (Long.compare(this.id, r.getId()))
+                        : this.name.compareTo(r.getName()))
+                : Float.compare(this.distance, r.getDistance());
+
+         */
     }
 
     /**
