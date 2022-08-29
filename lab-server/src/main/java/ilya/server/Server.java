@@ -37,19 +37,22 @@ public final class Server {
             args = new String[1];
             args[0] = "5555";
 
-
-            QueryManager sqlManager = new QueryManager(DB_USERNAME, DB_PASSWORD, DB_URL);
-            sqlManager.CreateTable();
-
             if (!AddressValidator.checkPort(args)) {
                 System.out.println("Please enter Port correctly!");
                 return;
             }
 
-            //todo String collectionPath = "Collection.xml";
-            //todo CollectionManager manager = XmlParser.convertXmlToCollection(collectionPath);
-            //CollectionManager manager = new CollectionManager(new ArrayList<>());
-            SQLCollectionManager manager = new SQLCollectionManager(new ArrayList<>(), sqlManager);
+
+
+            QueryManager queryManager = new QueryManager(DB_USERNAME, DB_PASSWORD, DB_URL);
+            queryManager.createTable();
+            SQLCollectionManager manager = new SQLCollectionManager(new ArrayList<>(), queryManager);
+            manager.loadFromTable();
+
+            for(Route route : manager.getCollection()) {
+                System.out.println(route);
+            }
+
             HashMap<String, Command> commands = createCommandsMap(manager);
 
             int port = Integer.parseInt(args[0]);
@@ -84,8 +87,6 @@ public final class Server {
                         String[] arguments = clientMessage.getArgs();
                         Route route = clientMessage.getRoute();
                         boolean isFile = clientMessage.getIsFile();
-
-                        //sqlManager.add(route);
 
                         ServerResponse serverResponse = commands.get(command).execute(username, arguments, route, isFile);
 
@@ -148,9 +149,8 @@ public final class Server {
         commands.put("update", new UpdateCommand(manager));
         commands.put("remove_by_id", new RemoveByIdCommand(manager));
         commands.put("clear", new ClearCommand(manager));
-        //commands.put("remove_first", new RemoveFirstCommand(manager));
+        commands.put("remove_first", new RemoveFirstCommand(manager));
         //commands.put("remove_lower", new RemoveLowerCommand(manager));
-        commands.put("sort", new SortCommand(manager));
         commands.put("filter_less_than_distance", new FilterLessThanDistanceCommand(manager));
         commands.put("print_ascending", new PrintAscendingCommand(manager));
         commands.put("print_field_descending_distance", new PrintFieldDescendingDistanceCommand(manager));

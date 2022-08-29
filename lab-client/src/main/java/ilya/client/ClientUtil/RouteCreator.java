@@ -38,7 +38,7 @@ public final class RouteCreator {
      * @throws WrongFileFormatException
      * @throws CtrlDException
      */
-    public Route createRoute() throws WrongFileFormatException, CtrlDException {
+    public Route createRoute(String owner) throws WrongFileFormatException, CtrlDException {
         RouteFieldInputManager inputManager = new RouteFieldInputManager();
 
         String name = inputManager.validatedLoopInput("Enter route name: ", io, String.class, new RouteValueValidator(new Number[]{0}, noMin, noMax, false));
@@ -66,7 +66,7 @@ public final class RouteCreator {
 
         float distance = inputManager.validatedLoopInput("Enter distance: ", io, Float.class, new RouteValueValidator(new Number[]{}, distanceBiggerThan, noMax, false));
 
-        return new Route(0L, name, coordinates, from, to, distance);
+        return new Route(0L, name, coordinates, from, to, distance, owner);
     }
 
 }

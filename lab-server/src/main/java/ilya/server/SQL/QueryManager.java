@@ -1,4 +1,6 @@
 package ilya.server.SQL;
+import ilya.common.Classes.Coordinates;
+import ilya.common.Classes.Location;
 import ilya.common.Classes.Route;
 import ilya.server.ServerUtil.ElementUpdateMessage;
 
@@ -13,7 +15,7 @@ public class QueryManager {
             + " ROUTE_NAME VARCHAR(100) NOT NULL,"
             + " COORDINATE_X INT NOT NULL,"
             + " COORDINATE_Y BIGINT NOT NULL CHECK(COORDINATE_Y > -673),"
-            + " CREARION_DATE VARCHAR(100) NOT NULL,"
+            + " CREATION_DATE TIMESTAMP NOT NULL,"
             + " FROM_X INT,"
             + " FROM_Y BIGINT,"
             + " FROM_Z DOUBLE PRECISION,"
@@ -22,7 +24,7 @@ public class QueryManager {
             + " TO_Y BIGINT NOT NULL,"
             + " TO_Z DOUBLE PRECISION NOT NULL,"
             + " TO_NAME VARCHAR(100),"
-            + " DISTANCE FLOAT NOT NULL"
+            + " DISTANCE FLOAT NOT NULL,"
             + " OWNER VARCHAR(100) NOT NULL"
             + ")";
     private Connection connection;
@@ -30,18 +32,65 @@ public class QueryManager {
         this.connection = DriverManager.getConnection(url, username, password);
         Class.forName("org.postgresql.Driver");
     }
-    public void CreateTable() throws SQLException {
+    public void createTable() throws SQLException {
         Statement statement = connection.createStatement();
         statement.execute(SQL_CREATE);
     }
-    public void sort() throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM mytable ORDER BY DISTANCE ASC, ROUTE_NAME ASC, ID ASC");
-        preparedStatement.execute();
+    public ArrayList<Route> loadFromTable() throws SQLException {
+        ArrayList<Route> collection = new ArrayList<>();
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM ROUTES");
+        while (resultSet.next()) {
+            collection.add((getRouteFromTable(resultSet)));
+        }
+        return collection;
+    }
+    private Route getRouteFromTable(ResultSet resultSet) throws SQLException {
+        Route route = new Route(
+                resultSet.getLong("ID"),
+                resultSet.getString("ROUTE_NAME"),
+                new Coordinates(
+                        resultSet.getInt("COORDINATE_X"),
+                        resultSet.getInt("COORDINATE_Y")
+                ),
+                //resultSet.getTimestamp("CREATION_DATE"),
+                new Location(
+                        resultSet.getInt("FROM_X"),
+                        resultSet.getLong("FROM_Y"),
+                        resultSet.getDouble("FROM_Z"),
+                        resultSet.getString("FROM_NAME")
+                ),
+                new Location(
+                        resultSet.getInt("TO_X"),
+                        resultSet.getLong("TO_Y"),
+                        resultSet.getDouble("TO_Z"),
+                        resultSet.getString("TO_NAME")
+                ),
+                resultSet.getFloat("DISTANCE"),
+                resultSet.getString("OWNER")
+        );
+        route.setCreationDate(resultSet.getTimestamp("CREATION_DATE"));
+        return route;
     }
     public void clearOwned(String username) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM ROUTES WHERE OWNER=?");
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "DELETE FROM ROUTES WHERE OWNER=?"
+        );
         preparedStatement.setString(1, username);
         preparedStatement.execute();
+    }
+    public ElementUpdateMessage removeFirst(String username) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT * FROM ROUTES"
+        );
+        ResultSet resultSet = preparedStatement.executeQuery();
+        if(resultSet.next()) {
+            if(Objects.equals(resultSet.getString("OWNER"), username)) {
+                return new ElementUpdateMessage("Element removed successfully", true);
+            }
+            return new ElementUpdateMessage("You have no rights to change this object", false);
+        }
+        return new ElementUpdateMessage("Can't remove, collection is empty", false);
     }
     public ElementUpdateMessage removeById(Long id, String username) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
@@ -60,40 +109,47 @@ public class QueryManager {
             return elementUpdateMessage;
         }
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "UPDATE ROUTES SET ROUTE_NAME=?, COORDINATE_X=?, COORDINATE_Y=?, CREARION_DATE=?,"
+                "UPDATE ROUTES SET ROUTE_NAME=?, COORDINATE_X=?, COORDINATE_Y=?, CREATION_DATE=?,"
                         + "FROM_X=?, FROM_Y=?, FROM_Z=?, TO_X=?, TO_Y=?, TO_Z=?, TO_NAME=?, DISTANCE=?"
-                + "WHERE ID=?");
+                + "WHERE ID=?"
+        );
         prepare(preparedStatement, route);
         preparedStatement.setLong(13, id);
         preparedStatement.execute();
         return new ElementUpdateMessage("Element updated successfully", true);
     }
     private ElementUpdateMessage checkElement(Long id, String username) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM ROUTES WHERE ID =" + id);
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT * FROM ROUTES WHERE ID =" + id
+        );
         ResultSet resultSet = preparedStatement.executeQuery();
         if(!resultSet.next()) {
             return new ElementUpdateMessage("There is no element with such id", false);
         }
-        if(!Objects.equals(resultSet.getString("USER_NAME"), username)) {
+        if(!Objects.equals(resultSet.getString("OWNER"), username)) {
             return new ElementUpdateMessage("You have no rights to change this object", false);
         }
         return new ElementUpdateMessage(null, true);
     }
-    public void add(Route route, String username) throws SQLException {
+    public Long add(Route route, String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "INSERT INTO ROUTES (ID, ROUTE_NAME, COORDINATE_X, COORDINATE_Y, CREARION_DATE, "
+                "INSERT INTO ROUTES (ID, ROUTE_NAME, COORDINATE_X, COORDINATE_Y, CREATION_DATE, "
                         + "FROM_X, FROM_Y, FROM_Z, FROM_NAME, TO_X, TO_Y, TO_Z, TO_NAME, DISTANCE, OWNER)"
-                        + "VALUES (default, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING ID;");
+                        + "VALUES (default, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING ID;"
+        );
         prepare(preparedStatement, route);
         preparedStatement.setString(14, username);
-        preparedStatement.execute();
+
+        ResultSet result = preparedStatement.executeQuery();
+        result.next();
+        return result.getLong("ID");
     }
     private void prepare(PreparedStatement preparedStatement, Route route) throws SQLException {
         preparedStatement.setString(1, route.getName());
         preparedStatement.setInt(2, route.getCoordinates().getX());
         preparedStatement.setLong(3, route.getCoordinates().getY());
 
-        preparedStatement.setString(4, route.getCreationDate().toString());
+        preparedStatement.setTimestamp(4, new Timestamp(route.getCreationDate().getTime()));
 
         if(route.getFrom() != null) {
             preparedStatement.setInt(5, route.getFrom().getX());

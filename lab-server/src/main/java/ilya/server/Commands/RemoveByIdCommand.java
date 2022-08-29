@@ -30,8 +30,8 @@ public class RemoveByIdCommand extends Command {
         ElementUpdateMessage elementUpdateMessage = manager.removeRouteByID(Long.parseLong(args[0]), username);
         if (elementUpdateMessage.getWasUpdated()) {
             return new ServerResponse(elementUpdateMessage.getMessage(),  false);
-        } else {
-            return new ServerResponse(elementUpdateMessage.getMessage(), isFile);
         }
+        return new ServerResponse(elementUpdateMessage.getMessage(), isFile);
+
     }
 }

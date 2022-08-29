@@ -60,7 +60,7 @@ public final class Client {
                         } else {
                             Route route = null;
                             if (commandsInfo.get(command).getRequiresNewRoute()) {
-                                route = new RouteCreator(io).createRoute();
+                                route = new RouteCreator(io).createRoute(username);
                             }
 
                             ClientMessage clientMessage = new ClientMessage(username, command, arguments, route, io.getIsFile());
@@ -132,12 +132,10 @@ public final class Client {
         commandsInfo.put("update", new CommandRules(1, true));
         commandsInfo.put("remove_by_id", new CommandRules(1));
         commandsInfo.put("clear", new CommandRules(0));
-        commandsInfo.put("save", new CommandRules(0));
         commandsInfo.put("execute_script", new CommandRules(1));
         commandsInfo.put("exit", new CommandRules(0));
         commandsInfo.put("remove_first", new CommandRules(0));
         commandsInfo.put("remove_lower", new CommandRules(0, true));
-        commandsInfo.put("sort", new CommandRules(0));
         commandsInfo.put("filter_less_than_distance", new CommandRules(1));
         commandsInfo.put("print_ascending", new CommandRules(0));
         commandsInfo.put("print_field_descending_distance", new CommandRules(0));

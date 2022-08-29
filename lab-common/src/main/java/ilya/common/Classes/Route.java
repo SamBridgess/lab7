@@ -16,6 +16,7 @@ public class Route implements Comparable<Route>, Serializable {
     private Location from;
     private Location to;
     private float distance;
+    private String owner;
 
     /**
      * creates new Route and generates ID and date of creation
@@ -26,7 +27,7 @@ public class Route implements Comparable<Route>, Serializable {
      * @param to            "to" coordinates (cannot be null)
      * @param distance      route length (must be greater than 1)
      */
-    public Route(Long id, String name, Coordinates coordinates, Location from, Location to, float distance) {
+    public Route(Long id, String name, Coordinates coordinates, Location from, Location to, float distance, String owner) {
         this.id = id;
         this.name = name;
         this.coordinates = coordinates;
@@ -34,9 +35,11 @@ public class Route implements Comparable<Route>, Serializable {
         this.from = from;
         this.to = to;
         this.distance = distance;
+        this.owner = owner;
     }
     public Route() {
     }
+
 
     public Long getId() {
         return id;
@@ -109,7 +112,7 @@ public class Route implements Comparable<Route>, Serializable {
      */
     @Override
     public int compareTo(Route r) {
-        if(Float.compare(this.distance, r.getDistance()) == 0) { //todo might be wrong
+        if(Float.compare(this.distance, r.getDistance()) == 0) {
             if(this.name.compareTo(r.getName()) == 0) {
                 return Long.compare(this.id, r.getId());
             } else {

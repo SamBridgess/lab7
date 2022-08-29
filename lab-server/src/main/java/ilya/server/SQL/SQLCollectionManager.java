@@ -24,13 +24,18 @@ public class SQLCollectionManager {
     }
     public SQLCollectionManager() {
     }
+
+    public void loadFromTable() throws SQLException {
+        collection = queryManager.loadFromTable();
+    }
+
     /**
      * adds new element to collection
      *
      * @param route  element to add
      */
     public void addNewElement(Route route, String username) throws SQLException {
-        queryManager.add(route, username);
+        route.setId(queryManager.add(route, username));
         collection.add(route);
     }
 
@@ -51,26 +56,17 @@ public class SQLCollectionManager {
     }
 
     /**
-     * removes route by index
+     * removes first element
      *
-     * @param idx   index of an element to remove
      * @return      returns if an element was removed successfully
      */
-    public boolean removeRouteByIdx(int idx) {
-        if (!collection.isEmpty()) {
-            collection.remove(idx);
-            return true;
-        } else {
-            return false;
-        }
-    }
 
-    /**
-     * sorts collection
-     */
-    public void sortCollection() throws SQLException {
-        queryManager.sort();
-        Collections.sort(collection);
+    public ElementUpdateMessage removeFirst(String username) throws SQLException {
+        ElementUpdateMessage elementUpdateMessage = queryManager.removeFirst(username);
+        if(elementUpdateMessage.getWasUpdated()) {
+            collection.remove(0);
+        }
+        return elementUpdateMessage;
     }
 
     /**

@@ -34,8 +34,8 @@ public class UpdateCommand extends Command {
         ElementUpdateMessage elementUpdateMessage = manager.update(Long.parseLong(args[0]), username, route);
         if(elementUpdateMessage.getWasUpdated()) {
             return new ServerResponse(elementUpdateMessage.getMessage(),  false);
-        } else {
-            return new ServerResponse(elementUpdateMessage.getMessage(),  isFile);
         }
+        return new ServerResponse(elementUpdateMessage.getMessage(),  isFile);
+
     }
 }
