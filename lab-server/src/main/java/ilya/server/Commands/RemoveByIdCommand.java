@@ -3,14 +3,18 @@ package ilya.server.Commands;
 import ilya.common.Classes.Route;
 import ilya.common.Exceptions.WrongFileFormatException;
 import ilya.common.Requests.ServerResponse;
+import ilya.server.SQL.SQLCollectionManager;
 import ilya.server.ServerUtil.CollectionManager;
+import ilya.server.ServerUtil.ElementUpdateMessage;
+
+import java.sql.SQLException;
 
 /**
  * remove_by_id command
  */
 public class RemoveByIdCommand extends Command {
-    private final CollectionManager manager;
-    public RemoveByIdCommand(CollectionManager manager) {
+    private final SQLCollectionManager manager;
+    public RemoveByIdCommand(SQLCollectionManager manager) {
         this.manager = manager;
     }
 
@@ -22,13 +26,12 @@ public class RemoveByIdCommand extends Command {
      * @throws WrongFileFormatException
      */
     @Override
-    public ServerResponse execute(String[] args, Route route, boolean isFile) throws WrongFileFormatException {
-        if (manager.removeRouteByID(Long.parseLong(args[0]))) {
-            return new ServerResponse("Element removed successfully",  false);
+    public ServerResponse execute(String username, String[] args, Route route, boolean isFile) throws WrongFileFormatException, SQLException {
+        ElementUpdateMessage elementUpdateMessage = manager.removeRouteByID(Long.parseLong(args[0]), username);
+        if (elementUpdateMessage.getWasUpdated()) {
+            return new ServerResponse(elementUpdateMessage.getMessage(),  false);
         } else {
-            return new ServerResponse("There is no element with such ID in collection", isFile);
+            return new ServerResponse(elementUpdateMessage.getMessage(), isFile);
         }
-
-
     }
 }

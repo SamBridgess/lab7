@@ -7,6 +7,7 @@ import ilya.common.Exceptions.WrongFileFormatException;
 import ilya.common.Requests.ServerResponse;
 import ilya.server.SQL.SQLCollectionManager;
 import ilya.server.ServerUtil.CollectionManager;
+import ilya.server.ServerUtil.ElementUpdateMessage;
 
 import java.sql.SQLException;
 
@@ -30,18 +31,11 @@ public class UpdateCommand extends Command {
      */
     @Override
     public ServerResponse execute(String username, String[] args, Route route, boolean isFile) throws WrongFileFormatException, CtrlDException, SQLException {
-        if(manager.update(Long.parseLong(args[0]), username, route)) {
-            return new ServerResponse("Updated element successfully",  false);
+        ElementUpdateMessage elementUpdateMessage = manager.update(Long.parseLong(args[0]), username, route);
+        if(elementUpdateMessage.getWasUpdated()) {
+            return new ServerResponse(elementUpdateMessage.getMessage(),  false);
         } else {
-            return new ServerResponse("There was a problem with updating the object",  isFile);
+            return new ServerResponse(elementUpdateMessage.getMessage(),  isFile);
         }
-        //todo нужно добавить конкретную причину ошибки(такой id отстувует \ нет прав)
-
-       /* route.setId(Long.valueOf(args[0]));
-        if (manager.update(route)) {
-            return new ServerResponse("Updated element successfully",  false);
-        } else {
-            return new ServerResponse("There is no object with such ID in the collection!",  isFile);
-        }*/
     }
 }

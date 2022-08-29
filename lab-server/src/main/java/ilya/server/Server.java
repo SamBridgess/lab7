@@ -145,8 +145,8 @@ public final class Server {
         commands.put("info", new InfoCommand(manager));
         commands.put("show", new ShowCommand(manager));
         commands.put("add", new AddCommand(manager));
-        //commands.put("update", new UpdateCommand(manager));
-        //commands.put("remove_by_id", new RemoveByIdCommand(manager));
+        commands.put("update", new UpdateCommand(manager));
+        commands.put("remove_by_id", new RemoveByIdCommand(manager));
         commands.put("clear", new ClearCommand(manager));
         //commands.put("remove_first", new RemoveFirstCommand(manager));
         //commands.put("remove_lower", new RemoveLowerCommand(manager));

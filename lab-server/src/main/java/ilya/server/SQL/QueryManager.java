@@ -1,5 +1,6 @@
 package ilya.server.SQL;
 import ilya.common.Classes.Route;
+import ilya.server.ServerUtil.ElementUpdateMessage;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -42,36 +43,50 @@ public class QueryManager {
         preparedStatement.setString(1, username);
         preparedStatement.execute();
     }
-    public boolean update(Long id, String username, Route route) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM ROUTES WHERE ID =" + id);
-        ResultSet resultSet = preparedStatement.executeQuery();
-        resultSet.next();
-        String rowCreatorName = resultSet.getString("USER_NAME");
-        if(!Objects.equals(rowCreatorName, username)) {
-            return false;
+    public ElementUpdateMessage removeById(Long id, String username) throws SQLException {
+        ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
+        if(!elementUpdateMessage.getWasUpdated()) {
+            return elementUpdateMessage;
         }
-        PreparedStatement preparedStatement2 = connection.prepareStatement(
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "DELETE FROM ROUTES WHERE ID=id"
+        );
+        preparedStatement.execute();
+        return new ElementUpdateMessage("Element removed successfully", true);
+    }
+    public ElementUpdateMessage update(Long id, String username, Route route) throws SQLException {
+        ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
+        if(!elementUpdateMessage.getWasUpdated()) {
+            return elementUpdateMessage;
+        }
+        PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE ROUTES SET ROUTE_NAME=?, COORDINATE_X=?, COORDINATE_Y=?, CREARION_DATE=?,"
                         + "FROM_X=?, FROM_Y=?, FROM_Z=?, TO_X=?, TO_Y=?, TO_Z=?, TO_NAME=?, DISTANCE=?"
                 + "WHERE ID=?");
-        prepare(preparedStatement2, route);
-        preparedStatement2.setLong(13, id);
-        preparedStatement2.execute();
-        return true;
+        prepare(preparedStatement, route);
+        preparedStatement.setLong(13, id);
+        preparedStatement.execute();
+        return new ElementUpdateMessage("Element updated successfully", true);
     }
-    public Long add(Route route, String username) throws SQLException {
+    private ElementUpdateMessage checkElement(Long id, String username) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM ROUTES WHERE ID =" + id);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        if(!resultSet.next()) {
+            return new ElementUpdateMessage("There is no element with such id", false);
+        }
+        if(!Objects.equals(resultSet.getString("USER_NAME"), username)) {
+            return new ElementUpdateMessage("You have no rights to change this object", false);
+        }
+        return new ElementUpdateMessage(null, true);
+    }
+    public void add(Route route, String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO ROUTES (ID, ROUTE_NAME, COORDINATE_X, COORDINATE_Y, CREARION_DATE, "
                         + "FROM_X, FROM_Y, FROM_Z, FROM_NAME, TO_X, TO_Y, TO_Z, TO_NAME, DISTANCE, OWNER)"
                         + "VALUES (default, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING ID;");
         prepare(preparedStatement, route);
         preparedStatement.setString(14, username);
-
-        ResultSet resultSet = preparedStatement.executeQuery();
-        resultSet.next();
-
-        long id = resultSet.getLong("ID");
-        return id;
+        preparedStatement.execute();
     }
     private void prepare(PreparedStatement preparedStatement, Route route) throws SQLException {
         preparedStatement.setString(1, route.getName());
