@@ -44,29 +44,33 @@ public class SQLCollectionManager {
      * clears collection
      */
     public void clearCollection(String username) throws SQLException {
-        queryManager.clearOwned(username);
-        collection.clear();
+        List<Route> routesToRemove = collection.stream()
+                .filter(r -> Objects.equals(r.getOwner(), username))
+                .collect(Collectors.toList());
+        List<Long> idToRemove = routesToRemove.stream().map(Route::getId).collect(Collectors.toList());
+        queryManager.removeByIdList(idToRemove);
+
+        collection.remove(routesToRemove);
     }
 
+    /**
+     * removes all objects from collection that are lower than the passed one
+     * @param route     passed object
+     */
+    public void removeAllLower(Route route, String username) throws SQLException {
+        List<Route> routesToRemove = collection.stream()
+                .filter(r -> new RouteComparator().isLower(r, route))
+                .filter(r -> Objects.equals(r.getOwner(), username))
+                .collect(Collectors.toList());
+        List<Long> idToRemove = routesToRemove.stream().map(Route::getId).collect(Collectors.toList());
+        queryManager.removeByIdList(idToRemove);
+        collection.remove(routesToRemove);
+    }
     /**
      * @return      returns collection
      */
-    public ArrayList<Route> getCollection() throws SQLException {
+    public ArrayList<Route> getCollection() {
         return collection;
-    }
-
-    /**
-     * removes first element
-     *
-     * @return      returns if an element was removed successfully
-     */
-
-    public ElementUpdateMessage removeFirst(String username) throws SQLException {
-        ElementUpdateMessage elementUpdateMessage = queryManager.removeFirst(username);
-        if(elementUpdateMessage.getWasUpdated()) {
-            collection.remove(0);
-        }
-        return elementUpdateMessage;
     }
 
     /**
@@ -83,13 +87,6 @@ public class SQLCollectionManager {
         return elementUpdateMessage;
     }
 
-    /**
-     * removes all objects from collection that are lower than the passed one
-     * @param route     passed object
-     */
-    public void removeAllLower(Route route) {
-        collection.removeIf(value -> new RouteComparator().isLower(value, route));
-    }
 
     /**
      * updates element in collection
@@ -99,6 +96,7 @@ public class SQLCollectionManager {
     public ElementUpdateMessage update(long id, String username, Route route) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = queryManager.update(id, username, route);
         if(elementUpdateMessage.getWasUpdated()) {
+            route.setId(elementUpdateMessage.getId());
             collection.removeIf(x -> Objects.equals(x.getId(), route.getId()));
             collection.add(route);
         }

@@ -5,7 +5,8 @@ import ilya.common.Exceptions.CtrlDException;
 import ilya.common.Exceptions.WrongFileFormatException;
 import ilya.common.Requests.ServerResponse;
 import ilya.server.SQL.SQLCollectionManager;
-import ilya.server.ServerUtil.CollectionManager;
+
+import java.sql.SQLException;
 
 
 /**
@@ -26,10 +27,8 @@ public class RemoveLowerCommand extends Command {
      * @throws CtrlDException
      */
     @Override
-    public ServerResponse execute(String username, String[] args, Route route, boolean isFile) throws WrongFileFormatException, CtrlDException {
-        //route.setId(manager.assignNewId());
-       // manager.removeAllLower(route);
-
+    public ServerResponse execute(String username, String[] args, Route route, boolean isFile) throws WrongFileFormatException, CtrlDException, SQLException {
+        manager.removeAllLower(route, username);
         return new ServerResponse("Elements removed successfully", false);
     }
 }

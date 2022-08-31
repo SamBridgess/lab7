@@ -6,6 +6,7 @@ import ilya.server.ServerUtil.ElementUpdateMessage;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class QueryManager {
@@ -45,6 +46,8 @@ public class QueryManager {
         }
         return collection;
     }
+
+
     private Route getRouteFromTable(ResultSet resultSet) throws SQLException {
         Route route = new Route(
                 resultSet.getLong("ID"),
@@ -72,36 +75,28 @@ public class QueryManager {
         route.setCreationDate(resultSet.getTimestamp("CREATION_DATE"));
         return route;
     }
-    public void clearOwned(String username) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement(
-                "DELETE FROM ROUTES WHERE OWNER=?"
-        );
-        preparedStatement.setString(1, username);
-        preparedStatement.execute();
-    }
-    public ElementUpdateMessage removeFirst(String username) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT * FROM ROUTES"
-        );
-        ResultSet resultSet = preparedStatement.executeQuery();
-        if(resultSet.next()) {
-            if(Objects.equals(resultSet.getString("OWNER"), username)) {
-                return new ElementUpdateMessage("Element removed successfully", true);
-            }
-            return new ElementUpdateMessage("You have no rights to change this object", false);
-        }
-        return new ElementUpdateMessage("Can't remove, collection is empty", false);
-    }
+
+
     public ElementUpdateMessage removeById(Long id, String username) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
         if(!elementUpdateMessage.getWasUpdated()) {
             return elementUpdateMessage;
         }
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "DELETE FROM ROUTES WHERE ID=id"
+                "DELETE FROM ROUTES WHERE ID=?"
         );
+        preparedStatement.setLong(1, id);
         preparedStatement.execute();
         return new ElementUpdateMessage("Element removed successfully", true);
+    }
+    public void removeByIdList(List<Long> idToRemove) throws SQLException {
+        for(Long id : idToRemove) {
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    "DELETE FROM ROUTES WHERE ID=?"
+            );
+            preparedStatement.setLong(1, id);
+            preparedStatement.execute();
+        }
     }
     public ElementUpdateMessage update(Long id, String username, Route route) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
@@ -110,14 +105,17 @@ public class QueryManager {
         }
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE ROUTES SET ROUTE_NAME=?, COORDINATE_X=?, COORDINATE_Y=?, CREATION_DATE=?,"
-                        + "FROM_X=?, FROM_Y=?, FROM_Z=?, TO_X=?, TO_Y=?, TO_Z=?, TO_NAME=?, DISTANCE=?"
-                + "WHERE ID=?"
+                        + "FROM_X=?, FROM_Y=?, FROM_Z=?, FROM_NAME=?, TO_X=?, TO_Y=?, TO_Z=?, TO_NAME=?, DISTANCE=?"
+                + "WHERE ID=?) RETURNING ID"
         );
         prepare(preparedStatement, route);
-        preparedStatement.setLong(13, id);
-        preparedStatement.execute();
-        return new ElementUpdateMessage("Element updated successfully", true);
+        preparedStatement.setLong(14, id);
+
+        ResultSet result = preparedStatement.executeQuery();
+        result.next();
+        return new ElementUpdateMessage("Element updated successfully", true, result.getLong("ID"));
     }
+
     private ElementUpdateMessage checkElement(Long id, String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT * FROM ROUTES WHERE ID =" + id

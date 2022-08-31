@@ -3,7 +3,7 @@ package ilya.server.Commands;
 import ilya.common.Classes.Route;
 import ilya.common.Requests.ServerResponse;
 import ilya.server.SQL.SQLCollectionManager;
-import ilya.server.ServerUtil.CollectionManager;
+
 
 import java.sql.SQLException;
 
@@ -26,6 +26,6 @@ public class ClearCommand extends Command {
     public ServerResponse execute(String username, String[] args, Route route, boolean isFile) throws SQLException {
         manager.clearCollection(username);
 
-        return new ServerResponse("Collection cleared successfully",  false);
+        return new ServerResponse("All owned element removed",  false);
     }
 }

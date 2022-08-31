@@ -28,7 +28,7 @@ public final class Client {
             args = new String[2];
             args[0] = "localhost";
             args[1] = "5555";
-            String username = "SomeUser";
+            String username = "Sam";
 
             if (!AddressValidator.checkAddress(args)) {
                 io.println("Please enter Host and Port correctly!");

@@ -90,6 +90,13 @@ public class Route implements Comparable<Route>, Serializable {
         this.distance = distance;
     }
 
+    public String getOwner() {
+        return owner;
+    }
+    public void setOwner(String username) {
+        this.owner = owner;
+    }
+
     /**
      * @return          returns string with information about each field
      */
@@ -97,12 +104,13 @@ public class Route implements Comparable<Route>, Serializable {
     public String toString() {
         return "Route{"
                 + "id=" + id
-                + ", name='" + name + '\''
+                + ", name=" + '\'' + name + '\''
                 + ", coordinates=" + coordinates
                 + ", creationDate=" + creationDate
                 + ", from=" + from
                 + ", to=" + to
                 + ", distance=" + distance
+                + ", owner=" + '\'' + owner + '\''
                 + '}';
     }
 
@@ -121,13 +129,6 @@ public class Route implements Comparable<Route>, Serializable {
         } else {
             return Float.compare(this.distance, r.getDistance());
         }
-        /*
-        return Float.compare(this.distance, r.getDistance()) == 0 ?
-                (this.name.compareTo(r.getName()) == 0 ? (Long.compare(this.id, r.getId()))
-                        : this.name.compareTo(r.getName()))
-                : Float.compare(this.distance, r.getDistance());
-
-         */
     }
 
     /**

@@ -6,7 +6,6 @@ import ilya.common.Exceptions.CtrlDException;
 import ilya.common.Exceptions.WrongFileFormatException;
 import ilya.common.Requests.ServerResponse;
 import ilya.server.SQL.SQLCollectionManager;
-import ilya.server.ServerUtil.CollectionManager;
 import ilya.server.ServerUtil.ElementUpdateMessage;
 
 import java.sql.SQLException;

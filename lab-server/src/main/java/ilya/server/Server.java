@@ -49,6 +49,7 @@ public final class Server {
             SQLCollectionManager manager = new SQLCollectionManager(new ArrayList<>(), queryManager);
             manager.loadFromTable();
 
+            System.out.println("Data from table:");
             for(Route route : manager.getCollection()) {
                 System.out.println(route);
             }
@@ -149,8 +150,7 @@ public final class Server {
         commands.put("update", new UpdateCommand(manager));
         commands.put("remove_by_id", new RemoveByIdCommand(manager));
         commands.put("clear", new ClearCommand(manager));
-        commands.put("remove_first", new RemoveFirstCommand(manager));
-        //commands.put("remove_lower", new RemoveLowerCommand(manager));
+        commands.put("remove_lower", new RemoveLowerCommand(manager));
         commands.put("filter_less_than_distance", new FilterLessThanDistanceCommand(manager));
         commands.put("print_ascending", new PrintAscendingCommand(manager));
         commands.put("print_field_descending_distance", new PrintFieldDescendingDistanceCommand(manager));
