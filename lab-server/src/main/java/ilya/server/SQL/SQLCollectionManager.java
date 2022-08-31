@@ -50,7 +50,7 @@ public class SQLCollectionManager {
         List<Long> idToRemove = routesToRemove.stream().map(Route::getId).collect(Collectors.toList());
         queryManager.removeByIdList(idToRemove);
 
-        collection.remove(routesToRemove);
+        collection.removeAll(routesToRemove);
     }
 
     /**
@@ -64,7 +64,7 @@ public class SQLCollectionManager {
                 .collect(Collectors.toList());
         List<Long> idToRemove = routesToRemove.stream().map(Route::getId).collect(Collectors.toList());
         queryManager.removeByIdList(idToRemove);
-        collection.remove(routesToRemove);
+        collection.removeAll(routesToRemove);
     }
     /**
      * @return      returns collection
