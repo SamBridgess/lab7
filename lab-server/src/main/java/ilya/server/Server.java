@@ -10,6 +10,7 @@ import ilya.common.util.AddressValidator;
 import ilya.server.Commands.*;
 import ilya.server.SQL.SQLCollectionManager;
 import ilya.server.SQL.QueryManager;
+import ilya.server.ServerUtil.PasswordManager;
 
 import java.io.*;
 import java.net.BindException;
@@ -19,6 +20,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -32,7 +34,7 @@ public final class Server {
     private static Set<SocketChannel> session;
     private Server() {
     }
-    public static void main(String[] args) throws IOException, ClassNotFoundException, CtrlDException, WrongFileFormatException, SQLException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, CtrlDException, WrongFileFormatException, SQLException, NoSuchAlgorithmException {
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
             args = new String[1];
             args[0] = "5555";
@@ -45,7 +47,8 @@ public final class Server {
 
 
             QueryManager queryManager = new QueryManager(DB_USERNAME, DB_PASSWORD, DB_URL);
-            queryManager.createTable();
+            queryManager.createUsersTable();
+            queryManager.createDataTable();
             SQLCollectionManager manager = new SQLCollectionManager(new ArrayList<>(), queryManager);
             manager.loadFromTable();
 
@@ -84,6 +87,12 @@ public final class Server {
                         }
 
                         String username = clientMessage.getUsername();
+                        String password = clientMessage.getPassword();
+
+                        if(!PasswordManager.login(username, password, queryManager)) {
+
+                        }
+
                         String command = clientMessage.getCommand();
                         String[] arguments = clientMessage.getArgs();
                         Route route = clientMessage.getRoute();

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class QueryManager {
-    private static final String SQL_CREATE = "CREATE TABLE IF NOT EXISTS ROUTES "
+    private static final String SQL_CREATE_DATA_TABLE = "CREATE TABLE IF NOT EXISTS ROUTES "
             + "("
             + " ID SERIAL PRIMARY KEY,"
             + " ROUTE_NAME VARCHAR(100) NOT NULL,"
@@ -28,14 +28,52 @@ public class QueryManager {
             + " DISTANCE FLOAT NOT NULL,"
             + " OWNER VARCHAR(100) NOT NULL"
             + ")";
+    private static final String SQL_CREATE_USERS_TABLE = "CREATE TABLE IF NOT EXISTS USERS"
+            + "("
+            + " USERNAME VARCHAR(100) NOT NULL,"
+            + " PASSWORD_HASH VARCHAR(100) NOT NULL"
+            + ")";
     private Connection connection;
     public QueryManager(String username, String password, String url) throws SQLException, ClassNotFoundException {
         this.connection = DriverManager.getConnection(url, username, password);
         Class.forName("org.postgresql.Driver");
     }
-    public void createTable() throws SQLException {
+    public void createUsersTable() throws SQLException {
         Statement statement = connection.createStatement();
-        statement.execute(SQL_CREATE);
+        statement.execute(SQL_CREATE_USERS_TABLE);
+    }
+    public boolean login(String username, String hash) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT * FROM USERS WHERE USERNAME=?"
+        );
+        preparedStatement.setString(1, username);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        if(!resultSet.next()) {
+            return false;
+        }
+        return Objects.equals(resultSet.getString("PASSWORD_HASH"), hash);
+    }
+    public boolean register(String username, String hash) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT * FROM USERS WHERE USERNAME=?"
+        );
+        preparedStatement.setString(1, username);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        if(resultSet.next()) {
+            return false;
+        }
+        PreparedStatement preparedStatement1 = connection.prepareStatement(
+                "INSERT INTO USERS (USERNAME, PASSWORD_HASH)"
+                        + "VALUES (?, ?);"
+        );
+        preparedStatement1.setString(1, username);
+        preparedStatement1.setString(2, hash);
+        preparedStatement1.executeQuery();
+        return true;
+    }
+    public void createDataTable() throws SQLException {
+        Statement statement = connection.createStatement();
+        statement.execute(SQL_CREATE_DATA_TABLE);
     }
     public ArrayList<Route> loadFromTable() throws SQLException {
         ArrayList<Route> collection = new ArrayList<>();
@@ -56,7 +94,6 @@ public class QueryManager {
                         resultSet.getInt("COORDINATE_X"),
                         resultSet.getInt("COORDINATE_Y")
                 ),
-                //resultSet.getTimestamp("CREATION_DATE"),
                 new Location(
                         resultSet.getInt("FROM_X"),
                         resultSet.getLong("FROM_Y"),

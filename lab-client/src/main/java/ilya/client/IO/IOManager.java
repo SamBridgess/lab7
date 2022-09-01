@@ -15,8 +15,6 @@ public class IOManager implements AutoCloseable {
 
     private BufferedReader reader;
     private PrintWriter writer;
-    private boolean continueExecutionFlag;
-
     private final Deque<File> fileStack = new LinkedList<>();
     private final Deque<BufferedReader> readers = new LinkedList<>();
     private final Deque<PrintWriter> writers = new LinkedList<>();
@@ -31,7 +29,6 @@ public class IOManager implements AutoCloseable {
     public IOManager(BufferedReader reader, PrintWriter writer) {
         this.reader = reader;
         this.writer = writer;
-        this.continueExecutionFlag = true;
     }
 
     /**
@@ -141,22 +138,6 @@ public class IOManager implements AutoCloseable {
 
         reader = readers.pop();
         writer = writers.pop();
-    }
-
-    /**
-     * sets continueExecutionFlag to passed parameter
-     *
-     * @param b parameter to set ContinueExecutionFlag to
-     */
-    public void setContinueExecutionFlag(boolean b) {
-        continueExecutionFlag = b;
-    }
-
-    /**
-     * @return returns value of continueExecutionFlag
-     */
-    public boolean getContinueExecutionFlag() {
-        return continueExecutionFlag;
     }
 
     public Deque<File> getFileStack() {

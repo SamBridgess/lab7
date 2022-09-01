@@ -23,12 +23,14 @@ public final class Client {
 
     private Client() {
     }
-    public static void main(String[] args) throws ClassNotFoundException {
+    public static void main(String[] args) throws ClassNotFoundException, CtrlDException {
         try (IOManager io = new IOManager(new BufferedReader(new InputStreamReader(System.in)), new PrintWriter(System.out, true))) {
             args = new String[2];
             args[0] = "localhost";
             args[1] = "5555";
-            String username = "Sam";
+            //String username = "Sam";
+            //password = "pass123"
+
 
             if (!AddressValidator.checkAddress(args)) {
                 io.println("Please enter Host and Port correctly!");
@@ -37,8 +39,14 @@ public final class Client {
             host = args[0];
             port = Integer.parseInt(args[1]);
 
+            String username, password;
+            io.println("Enter username:");
+            username = io.getNextLine();
+            io.println("Enter password:");
+            password = io.getNextLine();
+
             HashMap<String, CommandRules> commandsInfo = createCommandsInfo();
-            while (io.getContinueExecutionFlag()) {
+            while (true) {
                 try {
                     if (!io.getIsFile()) {
                         io.print(">>> ");
@@ -63,7 +71,7 @@ public final class Client {
                                 route = new RouteCreator(io).createRoute(username);
                             }
 
-                            ClientMessage clientMessage = new ClientMessage(username, command, arguments, route, io.getIsFile());
+                            ClientMessage clientMessage = new ClientMessage(username, password, command, arguments, route, io.getIsFile());
                             ServerResponse serverResponse = sendRequest(clientMessage);
                             io.println(serverResponse.getResponseMessage());
 
