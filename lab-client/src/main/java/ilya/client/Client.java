@@ -39,11 +39,16 @@ public final class Client {
             host = args[0];
             port = Integer.parseInt(args[1]);
 
+
+            //todo do you want to login or register
             String username, password;
             io.println("Enter username:");
             username = io.getNextLine();
             io.println("Enter password:");
             password = io.getNextLine();
+
+            ClientMessage clientMessage = new ClientMessage(username, password, null, null, null, false);
+            ServerResponse serverResponse = sendRequest(clientMessage);
 
             HashMap<String, CommandRules> commandsInfo = createCommandsInfo();
             while (true) {

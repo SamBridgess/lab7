@@ -21,10 +21,7 @@ public class ClientMessage implements Serializable {
         this.route = route;
         this.isFile = isFile;
     }
-    public ClientMessage(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
+
     public String getUsername() {
         return username;
     }
