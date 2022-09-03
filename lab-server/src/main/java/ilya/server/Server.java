@@ -14,6 +14,7 @@ import ilya.server.ServerUtil.PasswordManager;
 
 import java.io.*;
 import java.net.BindException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -44,8 +45,6 @@ public final class Server {
                 return;
             }
 
-
-
             QueryManager queryManager = new QueryManager(DB_USERNAME, DB_PASSWORD, DB_URL);
             queryManager.createUsersTable();
             queryManager.createDataTable();
@@ -68,7 +67,7 @@ public final class Server {
             serverSocketChannel.configureBlocking(false);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-            System.out.println("Server is working on port " + port);
+            System.out.println("Server is working on " + InetAddress.getLocalHost() + ": " + port);
             while (true) {
                 selector.select();
                 Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
@@ -88,9 +87,16 @@ public final class Server {
 
                         String username = clientMessage.getUsername();
                         String password = clientMessage.getPassword();
-
-                        if(!PasswordManager.login(username, password, queryManager)) {
-
+                        boolean isRegister = clientMessage.getIsRegister();
+                        boolean isLogin = clientMessage.getIsLogin();
+                        if(isRegister) {
+                            ServerResponse serverResponse = new ServerResponse(PasswordManager.registerUser(username, password, queryManager));
+                            sendResponse(key, serverResponse);
+                            continue;
+                        } else if(isLogin) {
+                            ServerResponse serverResponse = new ServerResponse(PasswordManager.login(username, password, queryManager));
+                            sendResponse(key, serverResponse);
+                            continue;
                         }
 
                         String command = clientMessage.getCommand();
@@ -103,7 +109,6 @@ public final class Server {
                         sendResponse(key, serverResponse);
                     }
                 }
-                //todo XmlParser.convertCollectionToXml(manager, collectionPath);
             }
         } catch (BindException e) {
             System.out.println("This port is already in use, try another!");
@@ -126,7 +131,7 @@ public final class Server {
         int numRead = channel.read(byteBuffer);
         if (numRead == -1) {
             session.remove(channel);
-            System.out.println("Exchanged finished: " + channel.socket().getRemoteSocketAddress() + "\n");
+            System.out.println("Exchange finished: " + channel.socket().getRemoteSocketAddress() + "\n");
             channel.close();
             key.cancel();
             return null;

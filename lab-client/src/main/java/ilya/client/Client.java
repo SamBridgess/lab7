@@ -16,10 +16,15 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
+import java.util.Objects;
 
 public final class Client {
     private static String host;
     private static int port;
+
+    private static String username;
+
+    private static String password;
 
     private Client() {
     }
@@ -28,27 +33,27 @@ public final class Client {
             args = new String[2];
             args[0] = "localhost";
             args[1] = "5555";
-            //String username = "Sam";
-            //password = "pass123"
-
 
             if (!AddressValidator.checkAddress(args)) {
-                io.println("Please enter Host and Port correctly!");
+                io.println("Please enter Host, Port, Username and Password correctly!");
                 return;
             }
             host = args[0];
             port = Integer.parseInt(args[1]);
 
 
-            //todo do you want to login or register
-            String username, password;
-            io.println("Enter username:");
-            username = io.getNextLine();
-            io.println("Enter password:");
-            password = io.getNextLine();
 
-            ClientMessage clientMessage = new ClientMessage(username, password, null, null, null, false);
-            ServerResponse serverResponse = sendRequest(clientMessage);
+            while(true) {
+                io.println("Enter username:");
+                username = io.getNextLine();
+                io.println("Enter password:");
+                password = io.getNextLine();
+                if(register(io)){
+                    if(login(io)) {
+                        break;
+                    }
+                }
+            }
 
             HashMap<String, CommandRules> commandsInfo = createCommandsInfo();
             while (true) {
@@ -110,6 +115,38 @@ public final class Client {
 
         } catch (IOException e) {
             System.out.println("Unexpected exception!");
+        }
+    }
+
+    private static boolean register(IOManager io) throws CtrlDException, IOException, ClassNotFoundException {
+        while(true) {
+            io.println("Do you want to register?(Y / N)");
+            String s = io.getNextLine();
+            if (Objects.equals(s, "y") | Objects.equals(s, "Y")) {
+                ClientMessage login = new ClientMessage(username, password, true, false);
+                ServerResponse serverResponse = sendRequest(login);
+                if(serverResponse.getOperationSucces()) {
+                    io.println("User registered successfully");
+                    return true;
+                } else {
+                    io.println("Could not register user");
+                    return false;
+                }
+            }
+            if (Objects.equals(s, "n") | Objects.equals(s, "N")) {
+                return true;
+            }
+        }
+    }
+    private static boolean login(IOManager io) throws IOException, ClassNotFoundException {
+        ClientMessage login = new ClientMessage(username, password, false, true);
+        ServerResponse serverResponse = sendRequest(login);
+        if(serverResponse.getOperationSucces()) {
+            io.println("Logged in successfully");
+            return true;
+        } else {
+            io.println("Could not log in");
+            return false;
         }
     }
 

@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 
 public class PasswordManager {
-    public static String getHash(String password) throws NoSuchAlgorithmException {
+    private static String getHash(String password) throws NoSuchAlgorithmException {
         MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
         byte[] bytes = sha1.digest(password.getBytes());
         BigInteger bi = new BigInteger(1, bytes);

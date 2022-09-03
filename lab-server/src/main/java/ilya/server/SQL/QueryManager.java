@@ -68,7 +68,7 @@ public class QueryManager {
         );
         preparedStatement1.setString(1, username);
         preparedStatement1.setString(2, hash);
-        preparedStatement1.executeQuery();
+        preparedStatement1.execute();
         return true;
     }
     public void createDataTable() throws SQLException {
