@@ -26,9 +26,9 @@ import java.sql.SQLException;
 import java.util.*;
 
 public final class Server {
-    private static final String DB_USERNAME = "postgres";
-    private static final String DB_PASSWORD = "123123";
-    private static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/TestBase";
+    private static String DB_USERNAME;
+    private static String DB_PASSWORD;
+    private static String DB_URL;
 
     private static Selector selector;
     private static InetSocketAddress inetSocketAddress;
@@ -37,9 +37,15 @@ public final class Server {
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException, CtrlDException, WrongFileFormatException, SQLException, NoSuchAlgorithmException {
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
-            args = new String[1];
+            args = new String[4];
             args[0] = "5555";
+            args[1] = "postgres";
+            args[2] = "123123";
+            args[3] = "jdbc:postgresql://127.0.0.1:5432/TestBase";
 
+            DB_USERNAME = args[1];
+            DB_PASSWORD = args[2];
+            DB_URL = args[3];
             if (!AddressValidator.checkPort(args)) {
                 System.out.println("Please enter Port correctly!");
                 return;
