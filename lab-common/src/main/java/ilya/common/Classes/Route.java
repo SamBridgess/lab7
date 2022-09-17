@@ -120,8 +120,8 @@ public class Route implements Comparable<Route>, Serializable {
      */
     @Override
     public int compareTo(Route r) {
-        if(Float.compare(this.distance, r.getDistance()) == 0) {
-            if(this.name.compareTo(r.getName()) == 0) {
+        if (Float.compare(this.distance, r.getDistance()) == 0) {
+            if (this.name.compareTo(r.getName()) == 0) {
                 return Long.compare(this.id, r.getId());
             } else {
                 return this.name.compareTo(r.getName());

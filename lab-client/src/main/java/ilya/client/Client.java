@@ -1,7 +1,12 @@
 package ilya.client;
 
 
-import ilya.client.ClientUtil.*;
+import ilya.client.ClientUtil.CommandRules;
+import ilya.client.ClientUtil.CommandSplitter;
+import ilya.client.ClientUtil.LineValidator;
+import ilya.client.ClientUtil.RouteCreator;
+import ilya.client.ClientUtil.ScriptManager;
+
 import ilya.client.IO.IOManager;
 import ilya.common.Classes.Route;
 import ilya.common.Exceptions.CtrlDException;
@@ -10,7 +15,16 @@ import ilya.common.Requests.ClientMessage;
 import ilya.common.Requests.ServerResponse;
 import ilya.common.util.AddressValidator;
 
-import java.io.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ByteArrayInputStream;
+
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -42,14 +56,13 @@ public final class Client {
             port = Integer.parseInt(args[1]);
 
 
-
-            while(true) {
+            while (true) {
                 io.println("Enter username:");
                 username = io.getNextLine();
                 io.println("Enter password:");
                 password = io.getNextLine();
-                if(register(io)){
-                    if(login(io)) {
+                if (register(io)) {
+                    if (login(io)) {
                         break;
                     }
                 }
@@ -119,13 +132,13 @@ public final class Client {
     }
 
     private static boolean register(IOManager io) throws CtrlDException, IOException, ClassNotFoundException {
-        while(true) {
+        while (true) {
             io.println("Do you want to register?(Y / N)");
             String s = io.getNextLine();
             if (Objects.equals(s, "y") | Objects.equals(s, "Y")) {
                 ClientMessage login = new ClientMessage(username, password, true, false);
                 ServerResponse serverResponse = sendRequest(login);
-                if(serverResponse.getOperationSucces()) {
+                if (serverResponse.getOperationSucces()) {
                     io.println("User registered successfully");
                     return true;
                 } else {
@@ -141,7 +154,7 @@ public final class Client {
     private static boolean login(IOManager io) throws IOException, ClassNotFoundException {
         ClientMessage login = new ClientMessage(username, password, false, true);
         ServerResponse serverResponse = sendRequest(login);
-        if(serverResponse.getOperationSucces()) {
+        if (serverResponse.getOperationSucces()) {
             io.println("Logged in successfully");
             return true;
         } else {

@@ -17,9 +17,6 @@ public final class AddressValidator {
         }
     }
     public static boolean checkPort(String[] args) {
-        if (args.length != 1) {
-            return false;
-        }
         try {
             final int port = Integer.parseInt(args[0]);
             return port >= MIN_PORT && port <= MAX_PORT;

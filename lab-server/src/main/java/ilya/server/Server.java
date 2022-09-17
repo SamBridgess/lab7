@@ -33,6 +33,8 @@ public final class Server {
     private static Selector selector;
     private static InetSocketAddress inetSocketAddress;
     private static Set<SocketChannel> session;
+
+    private static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private Server() {
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException, CtrlDException, WrongFileFormatException, SQLException, NoSuchAlgorithmException {
@@ -46,6 +48,9 @@ public final class Server {
             DB_USERNAME = args[1];
             DB_PASSWORD = args[2];
             DB_URL = args[3];
+            if (args.length != 4) {
+                System.out.println("Please enter arguments correctly!");
+            }
             if (!AddressValidator.checkPort(args)) {
                 System.out.println("Please enter Port correctly!");
                 return;
@@ -75,6 +80,16 @@ public final class Server {
 
             System.out.println("Server is working on " + InetAddress.getLocalHost() + ": " + port);
             while (true) {
+                try {
+                    if (System.in.available() > 0) {
+                        String input = in.readLine();
+                        if ("exit".equals(input)) {
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("Input error");
+                }
                 selector.select();
                 Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
                 while (keys.hasNext()) {
