@@ -33,17 +33,16 @@ public final class Server {
     private static InetSocketAddress inetSocketAddress;
     private static Set<SocketChannel> session;
 
-    private static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private Server() {
     }
-    public static void main(String[] args) throws IOException, ClassNotFoundException, IncorrectInputException, WrongFileFormatException, SQLException, NoSuchAlgorithmException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
-          /*  args = new String[4];
+           args = new String[4];
             args[0] = "5555";
             args[1] = "postgres";
             args[2] = "123123";
             args[3] = "jdbc:postgresql://127.0.0.1:5432/TestBase";
-            args[0] = "5555";
+           /*  args[0] = "5555";
             args[1] = "s335191";
             args[2] = "AWGU*6937";
             args[3] = "jdbc:postgresql://localhost:5432/studs";*/
@@ -85,54 +84,50 @@ public final class Server {
             System.out.println("Server is working on " + InetAddress.getLocalHost() + ": " + port);
             while (true) {
                 try {
-                    if (System.in.available() > 0) {
-                        String input = in.readLine();
-                        if ("exit".equals(input)) {
-                            break;
+                    selector.select();
+                    Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
+                    while (keys.hasNext()) {
+                        SelectionKey key = keys.next();
+                        keys.remove();
+                        if (!key.isValid()) {
+                            continue;
+                        }
+                        if (key.isAcceptable()) {
+                            accept(key);
+                        } else if (key.isReadable()) {
+                            ClientMessage clientMessage = receive(key);
+                            if (clientMessage == null) {
+                                continue;
+                            }
+
+                            String username = clientMessage.getUsername();
+                            String password = clientMessage.getPassword();
+                            boolean isRegister = clientMessage.getIsRegister();
+                            boolean isLogin = clientMessage.getIsLogin();
+                            if (isRegister) {
+                                ServerResponse serverResponse = new ServerResponse(PasswordManager.registerUser(username, password, queryManager));
+                                sendResponse(key, serverResponse);
+                                continue;
+                            } else if (isLogin) {
+                                ServerResponse serverResponse = new ServerResponse(PasswordManager.login(username, password, queryManager));
+                                sendResponse(key, serverResponse);
+                                continue;
+                            }
+
+                            String command = clientMessage.getCommand();
+                            String[] arguments = clientMessage.getArgs();
+                            Route route = clientMessage.getRoute();
+                            boolean isFile = clientMessage.getIsFile();
+
+                            ServerResponse serverResponse = commands.get(command).execute(username, arguments, route, isFile);
+
+                            sendResponse(key, serverResponse);
                         }
                     }
+                } catch (StreamCorruptedException e) {
+                    System.out.println("Unsupported packet received!");
                 } catch (Exception e) {
-                    System.out.println("Input error");
-                }
-                selector.select();
-                Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
-                while (keys.hasNext()) {
-                    SelectionKey key = keys.next();
-                    keys.remove();
-                    if (!key.isValid()) {
-                        continue;
-                    }
-                    if (key.isAcceptable()) {
-                        accept(key);
-                    } else if (key.isReadable()) {
-                        ClientMessage clientMessage = receive(key);
-                        if (clientMessage == null) {
-                            continue;
-                        }
-
-                        String username = clientMessage.getUsername();
-                        String password = clientMessage.getPassword();
-                        boolean isRegister = clientMessage.getIsRegister();
-                        boolean isLogin = clientMessage.getIsLogin();
-                        if (isRegister) {
-                            ServerResponse serverResponse = new ServerResponse(PasswordManager.registerUser(username, password, queryManager));
-                            sendResponse(key, serverResponse);
-                            continue;
-                        } else if (isLogin) {
-                            ServerResponse serverResponse = new ServerResponse(PasswordManager.login(username, password, queryManager));
-                            sendResponse(key, serverResponse);
-                            continue;
-                        }
-
-                        String command = clientMessage.getCommand();
-                        String[] arguments = clientMessage.getArgs();
-                        Route route = clientMessage.getRoute();
-                        boolean isFile = clientMessage.getIsFile();
-
-                        ServerResponse serverResponse = commands.get(command).execute(username, arguments, route, isFile);
-
-                        sendResponse(key, serverResponse);
-                    }
+                    System.out.println("Exception detected, server is still working");
                 }
             }
         } catch (BindException e) {
