@@ -11,6 +11,7 @@
 	<name>lab-client</name>
 
 	<build>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

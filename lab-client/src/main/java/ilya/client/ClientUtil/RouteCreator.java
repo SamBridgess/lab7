@@ -6,7 +6,7 @@ import ilya.client.IO.RouteFieldInputManager;
 import ilya.common.Classes.Coordinates;
 import ilya.common.Classes.Location;
 import ilya.common.Classes.Route;
-import ilya.common.Exceptions.CtrlDException;
+import ilya.common.Exceptions.IncorrectInputException;
 import ilya.common.Exceptions.WrongFileFormatException;
 
 
@@ -36,9 +36,9 @@ public final class RouteCreator {
      *
      * @return          returns created Route
      * @throws WrongFileFormatException
-     * @throws CtrlDException
+     * @throws IncorrectInputException
      */
-    public Route createRoute(String owner) throws WrongFileFormatException, CtrlDException {
+    public Route createRoute(String owner) throws WrongFileFormatException, IncorrectInputException {
         RouteFieldInputManager inputManager = new RouteFieldInputManager();
 
         String name = inputManager.validatedLoopInput("Enter route name: ", io, String.class, new RouteValueValidator(new Number[]{0}, noMin, noMax, false));

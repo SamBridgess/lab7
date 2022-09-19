@@ -9,7 +9,7 @@ import ilya.client.ClientUtil.ScriptManager;
 
 import ilya.client.IO.IOManager;
 import ilya.common.Classes.Route;
-import ilya.common.Exceptions.CtrlDException;
+import ilya.common.Exceptions.IncorrectInputException;
 import ilya.common.Exceptions.WrongFileFormatException;
 import ilya.common.Requests.ClientMessage;
 import ilya.common.Requests.ServerResponse;
@@ -42,11 +42,11 @@ public final class Client {
 
     private Client() {
     }
-    public static void main(String[] args) throws ClassNotFoundException, CtrlDException {
+    public static void main(String[] args) throws ClassNotFoundException, IncorrectInputException {
         try (IOManager io = new IOManager(new BufferedReader(new InputStreamReader(System.in)), new PrintWriter(System.out, true))) {
-            args = new String[2];
-            args[0] = "localhost";
-            args[1] = "5555";
+            //args = new String[2];
+            //args[0] = "localhost";
+            //args[1] = "5555";
 
             if (!AddressValidator.checkAddress(args)) {
                 io.println("Please enter Host, Port, Username and Password correctly!");
@@ -112,7 +112,7 @@ public final class Client {
                             throw new WrongFileFormatException();
                         }
                     }
-                } catch (CtrlDException e) {
+                } catch (IncorrectInputException e) {
                     io.clearStacks();
                     io.println("ctrl + D detected! Exiting program...");
                     return;
@@ -131,7 +131,7 @@ public final class Client {
         }
     }
 
-    private static boolean register(IOManager io) throws CtrlDException, IOException, ClassNotFoundException {
+    private static boolean register(IOManager io) throws IncorrectInputException, IOException, ClassNotFoundException {
         while (true) {
             io.println("Do you want to register?(Y / N)");
             String s = io.getNextLine();

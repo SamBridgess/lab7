@@ -1,6 +1,6 @@
 package ilya.client.IO;
 
-import ilya.common.Exceptions.CtrlDException;
+import ilya.common.Exceptions.IncorrectInputException;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -77,9 +77,9 @@ public class IOManager implements AutoCloseable {
      * @return returns next line from console, or from execution stack if working
      * with file
      * @throws IOException
-     * @throws CtrlDException
+     * @throws IncorrectInputException
      */
-    public String getNextLine() throws IOException, CtrlDException {
+    public String getNextLine() throws IOException, IncorrectInputException {
         String s;
         if (getIsFile()) {
             if (executionStack.peek().isEmpty()) {
@@ -90,7 +90,7 @@ public class IOManager implements AutoCloseable {
         } else {
             s = reader.readLine();
             if (s == null && !getIsFile()) {
-                throw new CtrlDException();
+                throw new IncorrectInputException();
             }
         }
         return s;

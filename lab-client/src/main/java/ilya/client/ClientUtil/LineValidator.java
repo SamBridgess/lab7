@@ -1,7 +1,7 @@
 package ilya.client.ClientUtil;
 
 import ilya.client.IO.IOManager;
-import ilya.common.Exceptions.CtrlDException;
+import ilya.common.Exceptions.IncorrectInputException;
 import ilya.common.Exceptions.WrongFileFormatException;
 
 import java.io.IOException;
@@ -33,9 +33,9 @@ public final class LineValidator {
      * @param io            passed IOManager
      * @throws IOException
      * @throws WrongFileFormatException
-     * @throws CtrlDException
+     * @throws IncorrectInputException
      */
-    public static boolean checkLine(String command, String[] args, HashMap<String, CommandRules> commandsInfo, IOManager io) throws IOException, WrongFileFormatException, CtrlDException {
+    public static boolean checkLine(String command, String[] args, HashMap<String, CommandRules> commandsInfo, IOManager io) throws IOException, WrongFileFormatException, IncorrectInputException {
         if (commandsInfo.containsKey(command)) {
             if (!checkNumberOfArguments(commandsInfo.get(command).getNumberOfArgs(), args.length)) {
                 io.println("Wrong number of arguments!");

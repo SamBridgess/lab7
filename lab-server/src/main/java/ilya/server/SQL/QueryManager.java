@@ -4,10 +4,18 @@ import ilya.common.Classes.Location;
 import ilya.common.Classes.Route;
 import ilya.server.ServerUtil.ElementUpdateMessage;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 
 public class QueryManager {
     private static final String SQL_CREATE_DATA_TABLE = "CREATE TABLE IF NOT EXISTS ROUTES "
@@ -48,7 +56,7 @@ public class QueryManager {
         );
         preparedStatement.setString(1, username);
         ResultSet resultSet = preparedStatement.executeQuery();
-        if(!resultSet.next()) {
+        if (!resultSet.next()) {
             return false;
         }
         return Objects.equals(resultSet.getString("PASSWORD_HASH"), hash);
@@ -59,7 +67,7 @@ public class QueryManager {
         );
         preparedStatement.setString(1, username);
         ResultSet resultSet = preparedStatement.executeQuery();
-        if(resultSet.next()) {
+        if (resultSet.next()) {
             return false;
         }
         PreparedStatement preparedStatement1 = connection.prepareStatement(
@@ -116,7 +124,7 @@ public class QueryManager {
 
     public ElementUpdateMessage removeById(Long id, String username) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
-        if(!elementUpdateMessage.getWasUpdated()) {
+        if (!elementUpdateMessage.getWasUpdated()) {
             return elementUpdateMessage;
         }
         PreparedStatement preparedStatement = connection.prepareStatement(
@@ -127,7 +135,7 @@ public class QueryManager {
         return new ElementUpdateMessage("Element removed successfully", true);
     }
     public void removeByIdList(List<Long> idToRemove) throws SQLException {
-        for(Long id : idToRemove) {
+        for (Long id : idToRemove) {
             PreparedStatement preparedStatement = connection.prepareStatement(
                     "DELETE FROM ROUTES WHERE ID=?"
             );
@@ -137,7 +145,7 @@ public class QueryManager {
     }
     public ElementUpdateMessage update(Long id, String username, Route route) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
-        if(!elementUpdateMessage.getWasUpdated()) {
+        if (!elementUpdateMessage.getWasUpdated()) {
             return elementUpdateMessage;
         }
         PreparedStatement preparedStatement = connection.prepareStatement(
@@ -158,10 +166,10 @@ public class QueryManager {
                 "SELECT * FROM ROUTES WHERE ID =" + id
         );
         ResultSet resultSet = preparedStatement.executeQuery();
-        if(!resultSet.next()) {
+        if (!resultSet.next()) {
             return new ElementUpdateMessage("There is no element with such id", false);
         }
-        if(!Objects.equals(resultSet.getString("OWNER"), username)) {
+        if (!Objects.equals(resultSet.getString("OWNER"), username)) {
             return new ElementUpdateMessage("You have no rights to change this object", false);
         }
         return new ElementUpdateMessage(null, true);
@@ -186,7 +194,7 @@ public class QueryManager {
 
         preparedStatement.setTimestamp(4, new Timestamp(route.getCreationDate().getTime()));
 
-        if(route.getFrom() != null) {
+        if (route.getFrom() != null) {
             preparedStatement.setInt(5, route.getFrom().getX());
             preparedStatement.setLong(6, route.getFrom().getY());
             preparedStatement.setDouble(7, route.getFrom().getZ());

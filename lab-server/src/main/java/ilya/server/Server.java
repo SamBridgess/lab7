@@ -1,8 +1,7 @@
 package ilya.server;
 
-
 import ilya.common.Classes.Route;
-import ilya.common.Exceptions.CtrlDException;
+import ilya.common.Exceptions.IncorrectInputException;
 import ilya.common.Exceptions.WrongFileFormatException;
 import ilya.common.Requests.ClientMessage;
 import ilya.common.Requests.ServerResponse;
@@ -26,9 +25,9 @@ import java.sql.SQLException;
 import java.util.*;
 
 public final class Server {
-    private static String DB_USERNAME;
-    private static String DB_PASSWORD;
-    private static String DB_URL;
+    private static String bdUsername;
+    private static String bdPassword;
+    private static String bdUrl;
 
     private static Selector selector;
     private static InetSocketAddress inetSocketAddress;
@@ -37,17 +36,22 @@ public final class Server {
     private static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private Server() {
     }
-    public static void main(String[] args) throws IOException, ClassNotFoundException, CtrlDException, WrongFileFormatException, SQLException, NoSuchAlgorithmException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, IncorrectInputException, WrongFileFormatException, SQLException, NoSuchAlgorithmException {
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
-            args = new String[4];
+          /*  args = new String[4];
             args[0] = "5555";
             args[1] = "postgres";
             args[2] = "123123";
             args[3] = "jdbc:postgresql://127.0.0.1:5432/TestBase";
+            args[0] = "5555";
+            args[1] = "s335191";
+            args[2] = "AWGU*6937";
+            args[3] = "jdbc:postgresql://localhost:5432/studs";*/
 
-            DB_USERNAME = args[1];
-            DB_PASSWORD = args[2];
-            DB_URL = args[3];
+
+            bdUsername = args[1];
+            bdPassword = args[2];
+            bdUrl = args[3];
             if (args.length != 4) {
                 System.out.println("Please enter arguments correctly!");
             }
@@ -56,14 +60,14 @@ public final class Server {
                 return;
             }
 
-            QueryManager queryManager = new QueryManager(DB_USERNAME, DB_PASSWORD, DB_URL);
+            QueryManager queryManager = new QueryManager(bdUsername, bdPassword, bdUrl);
             queryManager.createUsersTable();
             queryManager.createDataTable();
             SQLCollectionManager manager = new SQLCollectionManager(new ArrayList<>(), queryManager);
             manager.loadFromTable();
 
             System.out.println("Data from table:");
-            for(Route route : manager.getCollection()) {
+            for (Route route : manager.getCollection()) {
                 System.out.println(route);
             }
 
@@ -110,11 +114,11 @@ public final class Server {
                         String password = clientMessage.getPassword();
                         boolean isRegister = clientMessage.getIsRegister();
                         boolean isLogin = clientMessage.getIsLogin();
-                        if(isRegister) {
+                        if (isRegister) {
                             ServerResponse serverResponse = new ServerResponse(PasswordManager.registerUser(username, password, queryManager));
                             sendResponse(key, serverResponse);
                             continue;
-                        } else if(isLogin) {
+                        } else if (isLogin) {
                             ServerResponse serverResponse = new ServerResponse(PasswordManager.login(username, password, queryManager));
                             sendResponse(key, serverResponse);
                             continue;

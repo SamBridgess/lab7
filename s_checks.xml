@@ -94,7 +94,6 @@
 
         <!-- Checks for imports                              -->
         <!-- See http://checkstyle.sf.net/config_import.html -->
-        <module name="AvoidStarImport"/>
         <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
         <module name="RedundantImport"/>
         <module name="UnusedImports">
@@ -107,7 +106,7 @@
             <property name="max" value="15"/>
         </module>
         <module name="MethodLength">
-            <property name="max" value="40"/>
+            <property name="max" value="150"/>
         </module>
         <module name="ParameterNumber"/>
 
@@ -154,7 +153,6 @@
             <property name="setterCanReturnItsClass" value="true"/>
         </module>
         <module name="InnerAssignment"/>
-        <module name="MagicNumber"/>
         <module name="MissingSwitchDefault"/>
         <module name="MultipleVariableDeclarations"/>
         <module name="NestedForDepth">
@@ -177,7 +175,7 @@
         </module>
 
         <module name="CyclomaticComplexity">
-            <property name="max" value="15"/>
+            <property name="max" value="25"/>
         </module>
 
         <!-- Checks for class design                         -->

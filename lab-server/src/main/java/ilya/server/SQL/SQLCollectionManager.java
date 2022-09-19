@@ -5,7 +5,11 @@ import ilya.server.ServerUtil.ElementUpdateMessage;
 import ilya.server.ServerUtil.RouteComparator;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SQLCollectionManager {
@@ -81,7 +85,7 @@ public class SQLCollectionManager {
      */
     public ElementUpdateMessage removeRouteByID(Long id, String username) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = queryManager.removeById(id, username);
-        if(elementUpdateMessage.getWasUpdated()){
+        if (elementUpdateMessage.getWasUpdated()) {
             collection.removeIf(x -> x.getId() == id);
         }
         return elementUpdateMessage;
@@ -95,7 +99,7 @@ public class SQLCollectionManager {
      */
     public ElementUpdateMessage update(long id, String username, Route route) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = queryManager.update(id, username, route);
-        if(elementUpdateMessage.getWasUpdated()) {
+        if (elementUpdateMessage.getWasUpdated()) {
             route.setId(elementUpdateMessage.getId());
             collection.removeIf(x -> Objects.equals(x.getId(), route.getId()));
             collection.add(route);

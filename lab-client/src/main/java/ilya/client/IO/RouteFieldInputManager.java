@@ -1,7 +1,7 @@
 package ilya.client.IO;
 
 import ilya.client.ClientUtil.RouteValueValidator;
-import ilya.common.Exceptions.CtrlDException;
+import ilya.common.Exceptions.IncorrectInputException;
 import ilya.common.Exceptions.InvalidValueException;
 import ilya.common.Exceptions.WrongFileFormatException;
 
@@ -22,10 +22,10 @@ public class RouteFieldInputManager {
      * @param <T>
      * @return returns required value
      * @throws WrongFileFormatException
-     * @throws CtrlDException
+     * @throws IncorrectInputException
      */
     public <T> T validatedLoopInput(String message, IOManager io, Class<T> clazz, RouteValueValidator validator)
-            throws WrongFileFormatException, CtrlDException {
+            throws WrongFileFormatException, IncorrectInputException {
         while (true) {
             try {
                 if (!io.getIsFile()) {
@@ -59,10 +59,10 @@ public class RouteFieldInputManager {
      * @param fieldName name of field
      * @param io        passed IOManager
      * @return returns whether this collection element should be null
-     * @throws CtrlDException
+     * @throws IncorrectInputException
      * @throws WrongFileFormatException
      */
-    public boolean askIfNull(String fieldName, IOManager io) throws CtrlDException, WrongFileFormatException {
+    public boolean askIfNull(String fieldName, IOManager io) throws IncorrectInputException, WrongFileFormatException {
         while (true) {
             try {
                 if (!io.getIsFile()) {
