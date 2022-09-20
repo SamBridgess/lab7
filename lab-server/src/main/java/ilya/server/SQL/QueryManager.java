@@ -46,11 +46,11 @@ public class QueryManager {
         this.connection = DriverManager.getConnection(url, username, password);
         Class.forName("org.postgresql.Driver");
     }
-    public void createUsersTable() throws SQLException {
+    public synchronized void createUsersTable() throws SQLException {
         Statement statement = connection.createStatement();
         statement.execute(SQL_CREATE_USERS_TABLE);
     }
-    public boolean login(String username, String hash) throws SQLException {
+     public synchronized boolean login(String username, String hash) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT * FROM USERS WHERE USERNAME=?"
         );
@@ -61,7 +61,7 @@ public class QueryManager {
         }
         return Objects.equals(resultSet.getString("PASSWORD_HASH"), hash);
     }
-    public boolean register(String username, String hash) throws SQLException {
+     public synchronized boolean register(String username, String hash) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT * FROM USERS WHERE USERNAME=?"
         );
@@ -79,11 +79,11 @@ public class QueryManager {
         preparedStatement1.execute();
         return true;
     }
-    public void createDataTable() throws SQLException {
+    public synchronized void createDataTable() throws SQLException {
         Statement statement = connection.createStatement();
         statement.execute(SQL_CREATE_DATA_TABLE);
     }
-    public ArrayList<Route> loadFromTable() throws SQLException {
+     public synchronized ArrayList<Route> loadFromTable() throws SQLException {
         ArrayList<Route> collection = new ArrayList<>();
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT * FROM ROUTES");
@@ -94,7 +94,7 @@ public class QueryManager {
     }
 
 
-    private Route getRouteFromTable(ResultSet resultSet) throws SQLException {
+     private synchronized Route getRouteFromTable(ResultSet resultSet) throws SQLException {
         Route route = new Route(
                 resultSet.getLong("ID"),
                 resultSet.getString("ROUTE_NAME"),
@@ -122,7 +122,7 @@ public class QueryManager {
     }
 
 
-    public ElementUpdateMessage removeById(Long id, String username) throws SQLException {
+     public synchronized ElementUpdateMessage removeById(Long id, String username) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
         if (!elementUpdateMessage.getWasUpdated()) {
             return elementUpdateMessage;
@@ -134,7 +134,7 @@ public class QueryManager {
         preparedStatement.execute();
         return new ElementUpdateMessage("Element removed successfully", true);
     }
-    public void removeByIdList(List<Long> idToRemove) throws SQLException {
+     public synchronized void removeByIdList(List<Long> idToRemove) throws SQLException {
         for (Long id : idToRemove) {
             PreparedStatement preparedStatement = connection.prepareStatement(
                     "DELETE FROM ROUTES WHERE ID=?"
@@ -143,7 +143,7 @@ public class QueryManager {
             preparedStatement.execute();
         }
     }
-    public ElementUpdateMessage update(Long id, String username, Route route) throws SQLException {
+     public synchronized ElementUpdateMessage update(Long id, String username, Route route) throws SQLException {
         ElementUpdateMessage elementUpdateMessage = checkElement(id, username);
         if (!elementUpdateMessage.getWasUpdated()) {
             return elementUpdateMessage;
@@ -161,7 +161,7 @@ public class QueryManager {
         return new ElementUpdateMessage("Element updated successfully", true, result.getLong("ID"));
     }
 
-    private ElementUpdateMessage checkElement(Long id, String username) throws SQLException {
+    private synchronized ElementUpdateMessage checkElement(Long id, String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT * FROM ROUTES WHERE ID =" + id
         );
@@ -174,7 +174,7 @@ public class QueryManager {
         }
         return new ElementUpdateMessage(null, true);
     }
-    public Long add(Route route, String username) throws SQLException {
+     public synchronized Long add(Route route, String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO ROUTES (ID, ROUTE_NAME, COORDINATE_X, COORDINATE_Y, CREATION_DATE, "
                         + "FROM_X, FROM_Y, FROM_Z, FROM_NAME, TO_X, TO_Y, TO_Z, TO_NAME, DISTANCE, OWNER)"

@@ -44,9 +44,9 @@ public final class Client {
     }
     public static void main(String[] args) throws ClassNotFoundException, IncorrectInputException {
         try (IOManager io = new IOManager(new BufferedReader(new InputStreamReader(System.in)), new PrintWriter(System.out, true))) {
-         //   args = new String[2];
-           // args[0] = "localhost";
-            //args[1] = "5555";
+            //args = new String[2];
+            //args[0] = "localhost";
+           // args[1] = "5555";
 
             if (!AddressValidator.checkAddress(args)) {
                 io.println("Please enter Host, Port, Username and Password correctly!");
@@ -58,10 +58,24 @@ public final class Client {
 
             while (true) {
                 try {
-                    io.println("Enter username:");
-                    username = io.getNextLine();
-                    io.println("Enter password:");
-                    password = io.getNextLine();
+                    while (true) {
+                        io.println("Enter username:");
+                        username = io.getNextLine();
+                        if (username.length() <= 100) {
+                            break;
+                        }
+                        io.println("Username is too long!");
+                    }
+
+                    while (true) {
+                        io.println("Enter password:");
+                        password = io.getNextLine();
+                        if (password.length() <= 100) {
+                            break;
+                        }
+                        io.println("Password is too long!");
+                    }
+
                     if (register(io)) {
                         if (login(io)) {
                             break;

@@ -1,6 +1,8 @@
 package ilya.server;
 
 import ilya.common.Classes.Route;
+import ilya.common.Exceptions.IncorrectInputException;
+import ilya.common.Exceptions.WrongFileFormatException;
 import ilya.common.Requests.ClientMessage;
 import ilya.common.Requests.ServerResponse;
 import ilya.common.util.AddressValidator;
@@ -18,23 +20,32 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.*;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 public final class Server {
     private static String bdUsername;
     private static String bdPassword;
     private static String bdUrl;
 
+    private static HashMap<String, Command> commands;
+    private static QueryManager queryManager;
+    private static SQLCollectionManager manager;
+
     private static Selector selector;
-    private static InetSocketAddress inetSocketAddress;
-    private static Set<SocketChannel> session;
+    private static ExecutorService readRequestsPool = Executors.newCachedThreadPool();
+    private static ExecutorService requestHandlerPool = new ForkJoinPool();
+    private static ExecutorService responseSendPool = Executors.newCachedThreadPool();
+    //private static Set<SocketChannel> session;
 
     private Server() {
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
-         /*  args = new String[4];
+          /* args = new String[4];
             args[0] = "5555";
             args[1] = "postgres";
             args[2] = "123123";
@@ -56,25 +67,23 @@ public final class Server {
                 return;
             }
 
-            QueryManager queryManager = new QueryManager(bdUsername, bdPassword, bdUrl);
+            queryManager = new QueryManager(bdUsername, bdPassword, bdUrl);
             queryManager.createUsersTable();
             queryManager.createDataTable();
-            SQLCollectionManager manager = new SQLCollectionManager(new ArrayList<>(), queryManager);
+            manager = new SQLCollectionManager(new ArrayList<>(), queryManager);
             manager.loadFromTable();
+            commands = createCommandsMap(manager);
 
             System.out.println("Data from table:");
             for (Route route : manager.getCollection()) {
                 System.out.println(route);
             }
 
-            HashMap<String, Command> commands = createCommandsMap(manager);
-
             int port = Integer.parseInt(args[0]);
-            inetSocketAddress = new InetSocketAddress(port);
             selector = Selector.open();
-            session = new HashSet<>();
+            //session = new HashSet<>();
 
-            serverSocketChannel.bind(inetSocketAddress);
+            serverSocketChannel.bind(new InetSocketAddress(port));
             serverSocketChannel.configureBlocking(false);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
@@ -92,33 +101,34 @@ public final class Server {
                         if (key.isAcceptable()) {
                             accept(key);
                         } else if (key.isReadable()) {
-                            ClientMessage clientMessage = receive(key);
-                            if (clientMessage == null) {
-                                continue;
-                            }
+                            key.cancel();
+                            readRequestsPool.submit(() -> {
+                                try {
+                                    ClientMessage clientMessage = receive(key);
+                                    if (clientMessage == null) {
+                                        return;
+                                    }
 
-                            String username = clientMessage.getUsername();
-                            String password = clientMessage.getPassword();
-                            boolean isRegister = clientMessage.getIsRegister();
-                            boolean isLogin = clientMessage.getIsLogin();
-                            if (isRegister) {
-                                ServerResponse serverResponse = new ServerResponse(PasswordManager.registerUser(username, password, queryManager));
-                                sendResponse(key, serverResponse);
-                                continue;
-                            } else if (isLogin) {
-                                ServerResponse serverResponse = new ServerResponse(PasswordManager.login(username, password, queryManager));
-                                sendResponse(key, serverResponse);
-                                continue;
-                            }
-
-                            String command = clientMessage.getCommand();
-                            String[] arguments = clientMessage.getArgs();
-                            Route route = clientMessage.getRoute();
-                            boolean isFile = clientMessage.getIsFile();
-
-                            ServerResponse serverResponse = commands.get(command).execute(username, arguments, route, isFile);
-
-                            sendResponse(key, serverResponse);
+                                    requestHandlerPool.submit(() -> {
+                                        try {
+                                            ServerResponse response = handleRequest(clientMessage);
+                                            responseSendPool.submit(() -> {
+                                                try {
+                                                    sendResponse(key, response);
+                                                    key.channel().close();
+                                                    System.out.println("Exchange finished: " + ((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            });
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    });
+                                } catch (IOException | ClassNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                            });
                         }
                     }
                 } catch (StreamCorruptedException e) {
@@ -136,7 +146,7 @@ public final class Server {
         SocketChannel channel = serverSocketChannel.accept();
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_READ);
-        session.add(channel);
+        //session.add(channel);
         System.out.println("User accepted: " + channel.socket().getRemoteSocketAddress());
     }
     private static ClientMessage receive(SelectionKey key) throws IOException, ClassNotFoundException {
@@ -147,12 +157,13 @@ public final class Server {
 
         int numRead = channel.read(byteBuffer);
         if (numRead == -1) {
-            session.remove(channel);
-            System.out.println("Exchange finished: " + channel.socket().getRemoteSocketAddress() + "\n");
+            //session.remove(channel);
+            System.out.println("Exchange finished unexpectedly: " + channel.socket().getRemoteSocketAddress() + "\n");
             channel.close();
             key.cancel();
             return null;
         }
+        byteBuffer.flip();
         ObjectInputStream inputStream = new ObjectInputStream(new ByteArrayInputStream(byteBuffer.array()));
 
         ClientMessage clientMessage = (ClientMessage) inputStream.readObject();
@@ -160,6 +171,25 @@ public final class Server {
         byteBuffer.clear();
         System.out.println("Packet received!");
         return clientMessage;
+    }
+
+    private static ServerResponse handleRequest(ClientMessage clientMessage) throws SQLException, NoSuchAlgorithmException, WrongFileFormatException, IncorrectInputException, IOException {
+        String username = clientMessage.getUsername();
+        String password = clientMessage.getPassword();
+        boolean isRegister = clientMessage.getIsRegister();
+        boolean isLogin = clientMessage.getIsLogin();
+        if (isRegister) {
+            return new ServerResponse(PasswordManager.registerUser(username, password, queryManager));
+        } else if (isLogin) {
+            return new ServerResponse(PasswordManager.login(username, password, queryManager));
+        }
+
+        String command = clientMessage.getCommand();
+        String[] arguments = clientMessage.getArgs();
+        Route route = clientMessage.getRoute();
+        boolean isFile = clientMessage.getIsFile();
+
+        return commands.get(command).execute(username, arguments, route, isFile);
     }
     private static void sendResponse(SelectionKey key, ServerResponse serverResponse) throws IOException {
         SocketChannel channel = (SocketChannel) key.channel();
@@ -172,19 +202,19 @@ public final class Server {
         channel.write(ByteBuffer.wrap(b.toByteArray()));
         System.out.println("Packet sent!");
     }
-    private static HashMap<String, Command> createCommandsMap(SQLCollectionManager manager) {
-        HashMap<String, Command> commands = new HashMap<>();
-        commands.put("help", new HelpCommand());
-        commands.put("info", new InfoCommand(manager));
-        commands.put("show", new ShowCommand(manager));
-        commands.put("add", new AddCommand(manager));
-        commands.put("update", new UpdateCommand(manager));
-        commands.put("remove_by_id", new RemoveByIdCommand(manager));
-        commands.put("clear", new ClearCommand(manager));
-        commands.put("remove_lower", new RemoveLowerCommand(manager));
-        commands.put("filter_less_than_distance", new FilterLessThanDistanceCommand(manager));
-        commands.put("print_ascending", new PrintAscendingCommand(manager));
-        commands.put("print_field_descending_distance", new PrintFieldDescendingDistanceCommand(manager));
-        return commands;
+    private static HashMap<String, Command> createCommandsMap(SQLCollectionManager collectionManager) {
+        HashMap<String, Command> commandsMap = new HashMap<>();
+        commandsMap.put("help", new HelpCommand());
+        commandsMap.put("info", new InfoCommand(collectionManager));
+        commandsMap.put("show", new ShowCommand(collectionManager));
+        commandsMap.put("add", new AddCommand(collectionManager));
+        commandsMap.put("update", new UpdateCommand(collectionManager));
+        commandsMap.put("remove_by_id", new RemoveByIdCommand(collectionManager));
+        commandsMap.put("clear", new ClearCommand(collectionManager));
+        commandsMap.put("remove_lower", new RemoveLowerCommand(collectionManager));
+        commandsMap.put("filter_less_than_distance", new FilterLessThanDistanceCommand(collectionManager));
+        commandsMap.put("print_ascending", new PrintAscendingCommand(collectionManager));
+        commandsMap.put("print_field_descending_distance", new PrintFieldDescendingDistanceCommand(collectionManager));
+        return commandsMap;
     }
 }
