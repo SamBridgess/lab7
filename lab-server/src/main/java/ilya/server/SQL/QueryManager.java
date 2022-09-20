@@ -151,7 +151,7 @@ public class QueryManager {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE ROUTES SET ROUTE_NAME=?, COORDINATE_X=?, COORDINATE_Y=?, CREATION_DATE=?,"
                         + "FROM_X=?, FROM_Y=?, FROM_Z=?, FROM_NAME=?, TO_X=?, TO_Y=?, TO_Z=?, TO_NAME=?, DISTANCE=?"
-                + "WHERE ID=?) RETURNING ID"
+                + "WHERE ID=? RETURNING ID"
         );
         prepare(preparedStatement, route);
         preparedStatement.setLong(14, id);

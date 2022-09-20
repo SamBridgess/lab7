@@ -37,12 +37,12 @@ public final class Server {
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
-           args = new String[4];
+         /*  args = new String[4];
             args[0] = "5555";
             args[1] = "postgres";
             args[2] = "123123";
             args[3] = "jdbc:postgresql://127.0.0.1:5432/TestBase";
-           /*  args[0] = "5555";
+             args[0] = "5555";
             args[1] = "s335191";
             args[2] = "AWGU*6937";
             args[3] = "jdbc:postgresql://localhost:5432/studs";*/
