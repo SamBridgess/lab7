@@ -25,10 +25,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ByteArrayInputStream;
 
-import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -46,7 +43,7 @@ public final class Client {
         try (IOManager io = new IOManager(new BufferedReader(new InputStreamReader(System.in)), new PrintWriter(System.out, true))) {
             //args = new String[2];
             //args[0] = "localhost";
-           // args[1] = "5555";
+            //args[1] = "5551";
 
             if (!AddressValidator.checkAddress(args)) {
                 io.println("Please enter Host, Port, Username and Password correctly!");
@@ -81,7 +78,7 @@ public final class Client {
                             break;
                         }
                     }
-                } catch (ConnectException e) {
+                } catch (SocketException e) {
                     io.println("Server is currently unavailable!");
                 }
             }
@@ -137,7 +134,7 @@ public final class Client {
                 } catch (WrongFileFormatException e) {
                     io.clearStacks();
                     io.println("Can't execute script(s) further! Wrong file(s) format");
-                } catch (ConnectException | SocketTimeoutException e) {
+                } catch (SocketTimeoutException | SocketException e) {
                     io.clearStacks();
                     io.println("Server is currently unavailable!");
                 }
